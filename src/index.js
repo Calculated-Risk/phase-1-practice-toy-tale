@@ -25,7 +25,6 @@ make a <div class="card"> for each toy and add it to the toy-collection div.*/
     const toyCollection = document.getElementById("toy-collection")
     const toyFormContainer = document.querySelector(".container")
     const toyForm = document.querySelector(".add-toy-form")
-    console.log(toyForm)
  ////////////////////////////////////////////////////////////////////////////////////////   
 
 function getAllToys(){
@@ -43,7 +42,7 @@ getAllToys()
 /* h2 tag with the toy's name, Image tag with link, P tag for # of likes, button, & div
 */
 
-function addToysToDOM(toy){
+  function addToysToDOM(toy){
   let h2Tag = document.createElement('h2')
   h2Tag.innerText = toy.name
 
@@ -58,6 +57,7 @@ function addToysToDOM(toy){
   likeButton.setAttribute("id", toy.id)
   likeButton.className = 'like-btn'
   likeButton.innerText = 'Like ❤️'
+  likeButton.addEventListener('click', (e) => increaseLike(e))
 
   let cardDivClass = document.createElement("div")
   cardDivClass.className = 'card'
@@ -75,11 +75,11 @@ If the post is successful, the toy should be added to the DOM without reloading 
 
 toyForm.addEventListener("submit", (e) => {
   e.preventDefault();
-  addNewToy();
+  addNewToyFromForm();
   toyForm.reset()
 })
 
-function addNewToy(){
+function addNewToyFromForm(){
   const newSubmittedToy =  {
     "name": document.getElementById("toyName").value,
     "image": document.getElementById("toyImg").value,
@@ -89,14 +89,33 @@ function addNewToy(){
   fetch ("http://localhost:3000/toys", {
       method: "POST",
       headers: {
-        'content-type': 'application/json',
-        Accept: "application/json"
+        'Content-Type': 'application/json',
+        'Accept': "application/json"
       },
 
       body: JSON.stringify(newSubmittedToy)
   })
     .then(resolution => resolution.json())
     .then(addedToy => addToysToDOM(addedToy))
+}
 
+function increaseLike(e){
+  e.preventDefault()
+  let more = parseInt(e.target.previousElementSibling.innerText) + 1
+  
+  fetch (`http://localhost:3000/toys/${e.target.id}`,{
+      method: "PATCH",
+      headers: {
+       "Content-Type": "application/json",
+       "Accept": "application/json"
+      },
+      body: JSON.stringify({
+        'likes': more
+      })
+    })  
+      .then(res => res.json())
+      .then((objectLiked => {
+        e.target.previousElementSibling.innerText = `${more} likes`;
+      }))
 }
 
