@@ -21,40 +21,82 @@ When the page loads, make a 'GET' request to fetch all the toy objects. With the
 make a <div class="card"> for each toy and add it to the toy-collection div.*/
 
 
- // Global Variables
-    const toyContainer = document.getElementById("toy-collection")
-    const cardClassDiv = document.createElement("div")
-    const H2TagName = document.createElement("h2")
-    const imgElement = document.createElement("img")
-    const toyLikesP = document.createElement("p")
-    const toyButton = document.createElement("button")
-    let toyArray = []
-    
+ //////////////////////////////////// Global Variables////////////////////////////////////
+    const toyCollection = document.getElementById("toy-collection")
+    const toyFormContainer = document.querySelector(".container")
+    const toyForm = document.querySelector(".add-toy-form")
+    console.log(toyForm)
+ ////////////////////////////////////////////////////////////////////////////////////////   
 
-function fetchAllToys(){
-  fetch ("http://localhost:3000/toys")
+function getAllToys(){
+  return fetch ("http://localhost:3000/toys")
   .then ((response) => response.json())
-  .then ((toyList) => {
-    console.log(toyList) //console.logging to check List
-    addToysToCardClass(toyList)
-    toyArray = toyList
-    console.log(toyArray) //console.logging to check array
+  .then ((toys) => {
+     toys.forEach(toy => addToysToDOM(toy))
   })
 }
-fetchAllToys()
+getAllToys()
 
-function addToysToCardClass(listOfToys) {
-  for (let toy of listOfToys){
-    console.log(toy)
-    toyContainer.appendChild(cardClassDiv)
-    cardClassDiv.className = 'card'     
-    H2TagName.innerText = toy.name    // H2 TagName
-    cardClassDiv.append(H2TagName)
-    imgElement.src = toy.image       // Toy Image Link (displays image)
-    cardClassDiv.append(imgElement)
-    toyLikesP.innerText = `${toy.likes} likes`
-    cardClassDiv.append(toyLikesP)
-    
 
-  }
+
+
+/* h2 tag with the toy's name, Image tag with link, P tag for # of likes, button, & div
+*/
+
+function addToysToDOM(toy){
+  let h2Tag = document.createElement('h2')
+  h2Tag.innerText = toy.name
+
+  let imgTag = document.createElement('img')
+  imgTag.setAttribute('src', toy.image)
+  imgTag.className = "toy-avatar"
+
+  let numberOfLikes = document.createElement('p')
+  numberOfLikes.innerText = `${toy.likes}` + " likes"
+
+  let likeButton = document.createElement("button")
+  likeButton.setAttribute("id", toy.id)
+  likeButton.className = 'like-btn'
+  likeButton.innerText = 'Like ❤️'
+
+  let cardDivClass = document.createElement("div")
+  cardDivClass.className = 'card'
+  cardDivClass.append(h2Tag, imgTag, numberOfLikes, likeButton)
+  toyCollection.append(cardDivClass)
 }
+
+
+
+/*When a user submits the toy form, two things should happen:
+
+A POST request should be sent to http://localhost:3000/toys and the new toy added to Andy's Toy Collection.
+If the post is successful, the toy should be added to the DOM without reloading the page. 
+*/
+
+toyForm.addEventListener("submit", (e) => {
+  e.preventDefault();
+  addNewToy();
+  toyForm.reset()
+})
+
+function addNewToy(){
+  const newSubmittedToy =  {
+    "name": document.getElementById("toyName").value,
+    "image": document.getElementById("toyImg").value,
+    "likes": 0
+  }
+  
+  fetch ("http://localhost:3000/toys", {
+      method: "POST",
+      headers: {
+        'content-type': 'application/json',
+        Accept: "application/json"
+      },
+
+      body: JSON.stringify(newSubmittedToy)
+  })
+    .then(resolution => resolution.json())
+    .then(addedToy => addToysToDOM(addedToy))
+
+}
+
